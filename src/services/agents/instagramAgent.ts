@@ -4,25 +4,60 @@ import { platformConfig, API_ENDPOINTS } from '../../config/platforms';
 export class InstagramAgent {
   static async getLatestReel(): Promise<AgentResponse> {
     try {
-      // Mock implementation - replace with actual Instagram API call
+      // Check if we have actual access token
+      const hasRealToken = platformConfig.instagram.accessToken !== "your_instagram_access_token" && 
+                           platformConfig.instagram.accessToken.length > 20;
+
+      if (hasRealToken) {
+        try {
+          // Real implementation with actual Instagram API call
+          const response = await fetch(
+            `${API_ENDPOINTS.instagram.media}?fields=id,media_type,media_url,caption,permalink,timestamp&access_token=${platformConfig.instagram.accessToken}&limit=10`
+          );
+          
+          if (!response.ok) {
+            throw new Error(`Instagram API error: ${response.status}`);
+          }
+
+          const data = await response.json();
+          const latestReel = data.data?.find((media: any) => media.media_type === 'VIDEO');
+          
+          if (latestReel) {
+            const realReelData: InstagramMediaData = {
+              id: latestReel.id,
+              mediaType: latestReel.media_type,
+              mediaUrl: latestReel.media_url,
+              caption: latestReel.caption || 'No caption',
+              permalink: latestReel.permalink,
+              timestamp: latestReel.timestamp
+            };
+
+            return {
+              platform: 'instagram',
+              status: 'success',
+              message: 'Latest reel retrieved successfully',
+              data: realReelData,
+              timestamp: new Date(),
+              action: 'get_latest_reel'
+            };
+          } else {
+            throw new Error('No video content found');
+          }
+
+        } catch (apiError) {
+          console.warn('Instagram API failed, using mock data:', apiError);
+        }
+      }
+
+      // Mock implementation for demo/development
       const mockReelData: InstagramMediaData = {
-        id: `reel_${Date.now()}`,
+        id: `demo_reel_${Date.now()}`,
         mediaType: 'VIDEO',
-        mediaUrl: 'https://via.placeholder.com/400x600/e4405f/ffffff?text=Instagram+Reel',
-        caption: 'Just posted a new coding tutorial! 🚀 Building amazing projects with React and TypeScript. What do you think? #coding #react #typescript',
-        permalink: 'https://instagram.com/p/mock-reel-id',
+        mediaUrl: 'https://via.placeholder.com/400x600/e4405f/ffffff?text=Demo+Instagram+Reel',
+        caption: 'Just posted a new coding tutorial! 🚀 Building amazing projects with React and TypeScript. What do you think? #coding #react #typescript #demo',
+        permalink: `https://instagram.com/p/demo-reel-${Date.now()}`,
         timestamp: new Date().toISOString()
       };
-
-      /*
-      // Real implementation would look like this:
-      const response = await fetch(
-        `${API_ENDPOINTS.instagram.media}?fields=id,media_type,media_url,caption,permalink,timestamp&access_token=${platformConfig.instagram.accessToken}&limit=1`
-      );
-      
-      const data = await response.json();
-      const latestReel = data.data?.find((media: any) => media.media_type === 'VIDEO');
-      */
 
       return {
         platform: 'instagram',

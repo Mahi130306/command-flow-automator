@@ -26,33 +26,66 @@ export class TwitchAgent {
 
   static async checkStreamStatus(): Promise<AgentResponse> {
     try {
-      // Mock implementation - replace with actual API call
-      // For demo purposes, we'll simulate a live stream
-      const mockStreamData: TwitchStreamData = {
-        isLive: Math.random() > 0.5, // Random live status for demo
-        title: "Building Multi-Agent Bot System | Live Coding",
-        game: "Software and Game Development",
-        viewerCount: Math.floor(Math.random() * 100) + 1,
-        url: `https://twitch.tv/${platformConfig.twitch.username}`,
-        thumbnailUrl: "https://via.placeholder.com/320x180/9146ff/ffffff?text=LIVE"
-      };
+      // Check if we have actual credentials
+      const hasRealCredentials = platformConfig.twitch.clientId !== "your_twitch_client_id" && 
+                                 platformConfig.twitch.clientSecret !== "your_twitch_client_secret";
 
-      /*
-      // Real implementation would look like this:
-      const accessToken = await this.getAccessToken();
-      const response = await fetch(
-        `${API_ENDPOINTS.twitch.streams}?user_login=${platformConfig.twitch.username}`,
-        {
-          headers: {
-            'Client-ID': platformConfig.twitch.clientId,
-            'Authorization': `Bearer ${accessToken}`
+      if (hasRealCredentials) {
+        try {
+          // Real implementation with actual API call
+          const accessToken = await this.getAccessToken();
+          const response = await fetch(
+            `${API_ENDPOINTS.twitch.streams}?user_login=${platformConfig.twitch.username}`,
+            {
+              headers: {
+                'Client-ID': platformConfig.twitch.clientId,
+                'Authorization': `Bearer ${accessToken}`
+              }
+            }
+          );
+          
+          if (!response.ok) {
+            throw new Error(`Twitch API error: ${response.status}`);
           }
+
+          const data = await response.json();
+          const streamData = data.data[0];
+          
+          const realStreamData: TwitchStreamData = {
+            isLive: !!streamData,
+            title: streamData?.title || "Stream Offline",
+            game: streamData?.game_name || "No Category",
+            viewerCount: streamData?.viewer_count || 0,
+            url: `https://twitch.tv/${platformConfig.twitch.username}`,
+            thumbnailUrl: streamData?.thumbnail_url?.replace('{width}', '320').replace('{height}', '180') || ""
+          };
+
+          return {
+            platform: 'twitch',
+            status: 'success',
+            message: realStreamData.isLive 
+              ? `Stream is LIVE: ${realStreamData.title}` 
+              : 'Stream is currently offline',
+            data: realStreamData,
+            timestamp: new Date(),
+            action: 'check_stream'
+          };
+
+        } catch (apiError) {
+          // Fall back to mock if real API fails
+          console.warn('Twitch API failed, using mock data:', apiError);
         }
-      );
-      
-      const data = await response.json();
-      const streamData = data.data[0];
-      */
+      }
+
+      // Mock implementation for demo/development
+      const mockStreamData: TwitchStreamData = {
+        isLive: Math.random() > 0.3, // 70% chance of being live for demo
+        title: "Building Multi-Agent Bot System | Live Coding Session",
+        game: "Software and Game Development",
+        viewerCount: Math.floor(Math.random() * 150) + 5,
+        url: `https://twitch.tv/${platformConfig.twitch.username || 'demo_channel'}`,
+        thumbnailUrl: "https://via.placeholder.com/320x180/9146ff/ffffff?text=DEMO+LIVE"
+      };
 
       return {
         platform: 'twitch',
