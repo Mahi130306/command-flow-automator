@@ -61,7 +61,24 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				twitch: {
+					DEFAULT: 'hsl(var(--twitch))',
+					foreground: 'hsl(var(--twitch-foreground))'
+				},
+				discord: {
+					DEFAULT: 'hsl(var(--discord))',
+					foreground: 'hsl(var(--discord-foreground))'
+				},
+				instagram: {
+					DEFAULT: 'hsl(var(--instagram))',
+					foreground: 'hsl(var(--instagram-foreground))'
 				}
+			},
+			backgroundImage: {
+				'gradient-twitch': 'var(--gradient-twitch)',
+				'gradient-discord': 'var(--gradient-discord)',
+				'gradient-instagram': 'var(--gradient-instagram)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
